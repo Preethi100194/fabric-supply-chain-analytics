@@ -1,0 +1,453 @@
+createOrReplace
+
+	ref table dim_carrier
+
+		measure 'Back Orders %' = DIVIDE ( SUM ( fact_orders[Is Back Order] ), [Total Orders] )
+			lineageTag: 03c0618f-b782-4f91-b9b2-107f4c83f60f
+
+			changedProperty = Name
+
+			annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+		measure 'Back Orders Rating' =
+				
+				VAR bo = [Back Orders %]
+				RETURN SWITCH ( TRUE (),
+				    bo <= 0.02, 5, bo <= 0.03, 4, bo <= 0.04, 3, bo <= 0.05, 2, 1 )
+			formatString: 0
+			lineageTag: b164dc1e-d621-43fe-b74f-e8295695c8d2
+
+			changedProperty = Name
+
+		measure 'Demand Compliance %' = ```
+				DIVIDE ( SUM ( fact_orders[MetDemand] ), [Total Orders] )
+				
+				```
+			lineageTag: 3e4b5140-2521-445d-b78a-92e417fb543a
+
+			changedProperty = Name
+
+			annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+		measure 'Demand Compliance Rating' = ```
+				
+				VAR dc = [Demand Compliance %]
+				RETURN SWITCH ( TRUE (),
+				    dc >= 0.98, 5, dc >= 0.96, 4, dc >= 0.94, 3, dc >= 0.90, 2, 1 )
+				
+				
+				```
+			formatString: 0
+			lineageTag: 0532277b-8a14-4ded-807b-23ba82204775
+
+			changedProperty = Name
+
+		measure 'Gross Margin %' =
+				
+				VAR Rev = [Total Revenue]
+				VAR Cst = [Total COGS]
+				VAR Margin = Rev - Cst
+				RETURN
+				    DIVIDE ( Margin, Rev )
+			formatString: 0.00%;-0.00%;0.00%
+			lineageTag: a863704f-fa96-410e-8fc2-6e0a497eaa8b
+
+			changedProperty = Name
+
+			changedProperty = FormatString
+
+		measure 'In-Full %' = ```
+				DIVIDE ( SUM ( fact_orders[InFull] ), [Total Orders] )
+				
+				```
+			lineageTag: e0592453-6a6d-4bf2-bd76-5ff933b5b8ea
+
+			changedProperty = Name
+
+			annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+		measure 'On-Time %' = ```
+				DIVIDE ( SUM ( fact_orders[OnTime] ), [Total Orders] )
+				
+				```
+			lineageTag: b32bc3a3-da52-4b72-a90d-f911a3fe7adc
+
+			changedProperty = Name
+
+			annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+		measure 'Open Orders' = ```
+				CALCULATE ( [Total Orders], fact_orders[Status] = "Open" )
+				
+				```
+			formatString: 0
+			lineageTag: 6d4691be-5700-4654-9dcc-b7cddb810205
+
+			changedProperty = Name
+
+		measure 'OTIF %' = ```
+				
+				 DIVIDE ( SUM ( fact_orders[OTIF] ), [Total Orders] )
+				```
+			lineageTag: f404c195-e081-4612-9b60-62a90441dd1c
+
+			changedProperty = Name
+
+			annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+		measure 'OTIF LY' =
+				
+				CALCULATE ( [OTIF %], SAMEPERIODLASTYEAR ( dim_date[Date] ) )
+			lineageTag: 51dabbc7-a3f8-484a-aa9f-6b2ad898f9e6
+
+			changedProperty = Name
+
+			annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+		measure 'OTIF YoY (pp)' =
+				
+				[OTIF %] - [OTIF LY]
+			lineageTag: 2dfe682a-2800-4f3a-9833-25d0d46eaac8
+
+			changedProperty = Name
+
+			annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+		measure 'Revenue (SUMX)' =
+				
+				SUMX ( fact_orders, fact_orders[Quantity] * RELATED ( dim_product[UnitPrice] ) )
+			lineageTag: 098a7600-c73c-42c8-b258-245db9de13a2
+
+			changedProperty = Name
+
+			annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+		measure 'Revenue 3M Rolling Avg' =
+				
+				AVERAGEX (
+				    DATESINPERIOD ( dim_date[Date], MAX ( dim_date[Date] ), -3, MONTH ),
+				    [Total Revenue]
+				)
+			lineageTag: 9412c6d1-f2a1-470b-b272-62fd00f49602
+
+			changedProperty = Name
+
+			annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+		measure 'Revenue LY' =
+				
+				CALCULATE ( [Total Revenue], SAMEPERIODLASTYEAR ( dim_date[Date] ) )
+			formatString: "₹"\ #,0.###############;#,0.###############\ -"₹";"₹"\ #,0.###############
+			lineageTag: d6129598-6d2d-421a-9d12-bdf67e87813e
+
+			changedProperty = Name
+
+			changedProperty = FormatString
+
+			annotation PBI_FormatHint = {"currencyCulture":"en-IN"}
+
+		measure 'Revenue MTD' =
+				
+				TOTALMTD ( [Total Revenue], dim_date[Date] )
+			lineageTag: 6bc63412-d26f-446c-94fb-4b18e10a0e0e
+
+			changedProperty = Name
+
+			annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+		measure 'Revenue QTD' =
+				
+				TOTALQTD ( [Total Revenue], dim_date[Date] )
+			lineageTag: ccad7892-a7d9-42a0-bffc-a1310a778f86
+
+			changedProperty = Name
+
+			annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+		measure 'Revenue YoY %' = Supply.GrowthPct ( [Total Revenue], [Revenue LY] )
+			formatString: 0.00%;-0.00%;0.00%
+			lineageTag: b963658e-39b6-455c-88ed-3abe444fe57f
+
+			changedProperty = Name
+
+			changedProperty = FormatString
+
+		measure 'Revenue YTD' =
+				
+				TOTALYTD ( [Total Revenue], dim_date[Date] )
+			formatString: "₹"\ #,0.###############;#,0.###############\ -"₹";"₹"\ #,0.###############
+			lineageTag: 6aad8ba5-a1ca-4400-a81e-d428949d90aa
+
+			changedProperty = Name
+
+			changedProperty = FormatString
+
+			annotation PBI_FormatHint = {"currencyCulture":"en-IN"}
+
+		measure 'Total COGS' = ```
+				SUM ( fact_orders[Cost] )
+				
+				```
+			formatString: "₹"\ #,0.###############;#,0.###############\ -"₹";"₹"\ #,0.###############
+			lineageTag: 0d0f8dd6-0d8a-4799-b9eb-493fb06b183c
+
+			changedProperty = Name
+
+			changedProperty = FormatString
+
+			annotation PBI_FormatHint = {"currencyCulture":"en-IN"}
+
+		measure 'Total Demurrage' = ```
+				SUM ( fact_orders[DemurrageCost] )
+				
+				```
+			lineageTag: 69e866ed-5bd2-4fe6-8dcc-cc93105b0f12
+
+			changedProperty = Name
+
+			annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+		measure 'Total Orders' = ```
+				COUNTROWS ( fact_orders )
+				
+				```
+			formatString: 0
+			lineageTag: 3c49031c-6e7d-4503-b0eb-7a4145802953
+
+			changedProperty = Name
+
+		measure 'Total Revenue' = ```
+				SUM ( fact_orders[Revenue] )
+				
+				```
+			formatString: "₹"\ #,0.0;#,0.0\ -"₹";"₹"\ #,0.0
+			lineageTag: e3b210ef-5ea9-478f-b4f4-e56992fa142a
+
+			changedProperty = Name
+
+			changedProperty = FormatString
+
+			annotation PBI_FormatHint = {"currencyCulture":"en-IN"}
+
+	ref table fact_inventory
+
+		measure 'Avg Inventory Qty' =
+				
+				AVERAGEX ( VALUES ( dim_date[Date] ), CALCULATE ( SUM ( fact_inventory[OnHandQty] ) ) )
+			lineageTag: a6b3ec62-b0bc-4c40-9106-5d4f613db194
+
+			changedProperty = Name
+
+			annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+		measure 'Avg Inventory Value' =
+				
+				AVERAGEX (
+				    VALUES ( dim_date[Date] ),
+				    CALCULATE ( SUM ( fact_inventory[InventoryValue] ) )
+				)
+			lineageTag: 6fed92a5-06d4-48b2-8b77-8da980dc121e
+
+			changedProperty = Name
+
+			annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+		measure 'Closing Stock MoM %' = Supply.GrowthPct ( [Closing Stock Value], [Closing Stock Value PM] )
+			lineageTag: 0052b6b8-646a-4ebc-8acd-03d73001dcb8
+
+			changedProperty = Name
+
+			annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+		measure 'Closing Stock Qty' = ```
+				CALCULATE ( SUM ( fact_inventory[OnHandQty] ), LASTDATE ( dim_date[Date] ) )
+				
+				```
+			formatString: 0
+			lineageTag: 40f5f239-6367-4f38-90c7-912d0c976195
+
+			changedProperty = Name
+
+		measure 'Closing Stock Value' = ```
+				CALCULATE ( SUM ( fact_inventory[InventoryValue] ), LASTDATE ( dim_date[Date] ) )
+				
+				```
+			lineageTag: 4eb058ce-4481-4c69-a298-32098efc7bac
+
+			changedProperty = Name
+
+			annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+		measure 'Closing Stock Value PM' =
+				
+				CALCULATE ( [Closing Stock Value], DATEADD ( dim_date[Date], -1, MONTH ) )
+			lineageTag: 09215332-173a-4a61-b471-fa1f5e87af5c
+
+			changedProperty = Name
+
+			annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+		measure 'Days of Inventory (DOI)' =
+				
+				VAR DaysInContext = COUNTROWS ( VALUES ( dim_date[Date] ) )
+				RETURN DIVIDE ( [Avg Inventory Value], [Total COGS] ) * DaysInContext
+			lineageTag: a9098891-abf6-415e-9d9f-b6c07a128b03
+
+			changedProperty = Name
+
+			annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+		measure 'Inventory Turnover' =
+				
+				VAR DaysInContext = COUNTROWS ( VALUES ( dim_date[Date] ) )
+				RETURN
+				DIVIDE ( [Total COGS], [Avg Inventory Value] ) * DIVIDE ( 365, DaysInContext )
+			lineageTag: 1775871a-cf82-45bf-b923-ad66e0e7884b
+
+			changedProperty = Name
+
+			annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+		measure 'Obsolete Stock Value' =
+				
+				SUMX (
+				    VALUES ( dim_product[ProductKey] ),
+				    IF ( [Days of Inventory (DOI)] > 180, [Closing Stock Value] )
+				)
+			lineageTag: 3c0a20e6-9737-4ecb-96f3-4cd9018d3d6c
+
+			changedProperty = Name
+
+			annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+		measure 'SMOG %' = DIVIDE ( [Obsolete Stock Value], [Closing Stock Value] )
+			lineageTag: f01fa0e8-33b3-4c51-86b1-b30a8153c609
+
+			changedProperty = Name
+
+			annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+		measure 'Stock Value in Band' =
+				
+				VAR bMin = SELECTEDVALUE ( dim_doi_band[MinDOI] )   -- this column's lower bound
+				VAR bMax = SELECTEDVALUE ( dim_doi_band[MaxDOI] )   -- this column's upper bound
+				RETURN
+				SUMX (
+				    VALUES ( dim_product[ProductKey] ),             -- loop every product
+				    VAR pDOI = [Days of Inventory (DOI)]            -- that product's DOI, in context
+				    RETURN IF ( pDOI > bMin && pDOI <= bMax,         -- is it in THIS band?
+				                [Closing Stock Value] )              -- if yes, count its stock
+				)
+			lineageTag: fcac65df-8e33-4313-930b-7a8f46bbe50d
+
+			changedProperty = Name
+
+			annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+		measure 'Stock-out SKUs' =
+				
+				CALCULATE (
+				    COUNTROWS ( VALUES ( fact_inventory[ProductKey] ) ),
+				    FILTER ( fact_inventory, fact_inventory[OnHandQty] = 0 ),
+				    LASTDATE ( dim_date[Date] )
+				)
+			formatString: 0
+			lineageTag: 0e8365f7-c6a8-4ebb-872e-d9b3b45696b6
+
+			changedProperty = Name
+
+	ref table fact_orders
+
+		measure 'Avg Order Value' = DIVIDE ( [Total Revenue], [Order Count] )
+			formatString: "₹"\ #,0;#,0\ -"₹";"₹"\ #,0
+			lineageTag: 0334d4bf-f033-4b25-98fd-3d0d25f69e07
+
+			changedProperty = Name
+
+			changedProperty = FormatString
+
+			annotation PBI_FormatHint = {"currencyCulture":"en-IN"}
+
+		measure 'Gross Margin' = ```
+				[Total Revenue] - [Total COGS]
+				
+				```
+			formatString: "₹"\ #,0.###############;#,0.###############\ -"₹";"₹"\ #,0.###############
+			lineageTag: f9984dbe-1703-4f5c-8c6c-8d4dbeebc9dd
+
+			changedProperty = Name
+
+			changedProperty = FormatString
+
+			annotation PBI_FormatHint = {"currencyCulture":"en-IN"}
+
+		measure 'Order Count' = ```
+				DISTINCTCOUNT ( fact_orders[OrderID] )
+				
+				```
+			formatString: 0
+			lineageTag: b6c0a46b-1e64-4f51-9837-562f2faab7c3
+
+			changedProperty = Name
+
+		measure 'Revenue MoM %' = Supply.GrowthPct ( [Total Revenue], [Revenue PM] )
+			formatString: 0.00%;-0.00%;0.00%
+			lineageTag: 82b2d0a2-80cc-47be-ae4d-271cb95270b6
+
+			changedProperty = Name
+
+			changedProperty = FormatString
+
+		measure 'Revenue PM' = ```
+				CALCULATE ( [Total Revenue], DATEADD ( dim_date[Date], -1, MONTH ) )
+				
+				```
+			lineageTag: 5977b542-020e-4dcb-9a69-93948cd11a7f
+
+			changedProperty = Name
+
+			annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+		measure 'Revenue YoY' = ```
+				[Total Revenue] - [Revenue LY]
+				
+				```
+			formatString: "₹"\ #,0.###############;#,0.###############\ -"₹";"₹"\ #,0.###############
+			lineageTag: ce4b3adb-50d7-437e-8566-daf97971703e
+
+			changedProperty = Name
+
+			changedProperty = FormatString
+
+			annotation PBI_FormatHint = {"currencyCulture":"en-IN"}
+
+		measure 'Total Volume' = ```
+				SUM ( fact_orders[Quantity] )
+				
+				```
+			formatString: 0
+			lineageTag: 447bbb24-7b81-416d-9dac-86d49bb959fe
+
+			changedProperty = Name
+
+	ref table ServiceLevelKPIs
+
+		measure 'KPI Actual' =
+				
+				SWITCH ( SELECTEDVALUE ( ServiceLevelKPIs[KPI] ),
+				    "Demand Compliance", FORMAT ( [Demand Compliance %], "0.0%" ),
+				    "OTIF",              FORMAT ( [OTIF %], "0.0%" ),
+				    "Back Orders",       FORMAT ( [Back Orders %], "0.0%" )
+				)
+			lineageTag: ed2355e2-abb5-46b4-ab37-5ba3c686ba83
+
+		measure 'KPI Rating' =
+				
+				SWITCH ( SELECTEDVALUE ( ServiceLevelKPIs[KPI] ),
+				    "Demand Compliance", [Demand Compliance Rating],
+				    "OTIF",              BLANK (),
+				    "Back Orders",       [Back Orders Rating]
+				)
+			formatString: 0
+			lineageTag: 61f6ee52-7ab1-461c-a108-9b76050381e7
+
