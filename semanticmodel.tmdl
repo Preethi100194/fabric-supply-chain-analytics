@@ -1,0 +1,72 @@
+createOrReplace
+
+	/// Period-over-period growth as a ratio.
+	/// @param currentVal - current period value
+	/// @param priorVal - prior period value
+	/// @returns growth ratio (0.05 = +5%)
+	function 'Supply.GrowthPct' =
+			(
+			        currentVal : NUMERIC,
+			        priorVal : NUMERIC
+			    ) =>
+			    DIVIDE ( currentVal - priorVal, priorVal )
+		lineageTag: 51c35d2a-1e1d-46d6-8a3a-330dcd4d4a5d
+
+    createOrReplace
+
+	table dim_doi_band
+		lineageTag: a33c7b95-385f-4058-8ab6-30de28cabfea
+		sourceLineageTag: [dbo].[dim_doi_band]
+
+		column Band
+			dataType: string
+			lineageTag: 99c27869-63a1-4031-aa6f-a16f2785cad2
+			sourceLineageTag: Band
+			isDefaultLabel
+			summarizeBy: none
+			sourceColumn: Band
+			sortByColumn: Sort
+
+			changedProperty = SortByColumn
+
+			annotation SummarizationSetBy = Automatic
+
+		column MinDOI
+			dataType: int64
+			formatString: 0
+			lineageTag: 96b76c8c-1bc4-40d2-b84e-6b0cc84dd66f
+			sourceLineageTag: MinDOI
+			summarizeBy: sum
+			sourceColumn: MinDOI
+
+			annotation SummarizationSetBy = Automatic
+
+		column MaxDOI
+			dataType: int64
+			formatString: 0
+			lineageTag: 2692c1d3-f8d1-446d-8ead-920df092f6c9
+			sourceLineageTag: MaxDOI
+			summarizeBy: sum
+			sourceColumn: MaxDOI
+
+			annotation SummarizationSetBy = Automatic
+
+		column Sort
+			dataType: int64
+			formatString: 0
+			lineageTag: 0feb2cc0-3302-4c57-bc57-8bac1d8603f5
+			sourceLineageTag: Sort
+			summarizeBy: sum
+			sourceColumn: Sort
+
+			annotation SummarizationSetBy = Automatic
+
+		partition dim_doi_band = entity
+			mode: directLake
+			source
+				entityName: dim_doi_band
+				schemaName: dbo
+				expressionSource: 'DirectLake - SupplyChainLH'
+
+
+
