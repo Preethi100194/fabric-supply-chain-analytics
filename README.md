@@ -8,6 +8,9 @@ Built on **synthetic data** generated for the project — no real company data i
 
 ---
 
+   ## 📄 Engineering notes & STAR stories
+   Modeling decisions, grain choices, and the debugging write-ups behind the dashboards: **[ENGINEERING_NOTES.md](ENGINEERING_NOTES.md)**
+
 ## What it does
 
 Models a manufacturing supply chain (orders + monthly inventory snapshots) and reports on sales performance, with the semantic model designed to power a multi-dashboard suite (Sales first, with Inventory, Service Level, Open Orders, Demand Planning, Production, and Logistics on the same model).
