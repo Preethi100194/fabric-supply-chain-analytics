@@ -8,17 +8,50 @@ Built on **synthetic data** generated for the project — no real company data i
 
 ---
 
-   ## 📄 Engineering notes & STAR stories
-   Modeling decisions, grain choices, and the debugging write-ups behind the dashboards: **[ENGINEERING_NOTES.md](ENGINEERING_NOTES.md)**
+📄 Engineering notes & STAR stories
+
+The modeling decisions, grain choices, and debugging write-ups (including a cartesian fan-out fix and a filter-stable Days-of-Inventory measure) are documented here:**[ENGINEERING_NOTES.md](ENGINEERING_NOTES.md)**
 
 ## What it does
 
 Models a manufacturing supply chain (orders + monthly inventory snapshots) and reports on sales performance, with the semantic model designed to power a multi-dashboard suite (Sales first, with Inventory, Service Level, Open Orders, Demand Planning, Production, and Logistics on the same model).
 
-**Sales dashboard KPIs:** Total Revenue, Volume, Order Count, Avg Order Value, Gross Margin %, and Revenue YoY / MoM / YTD.
+What this project demonstrates
+Semantic modeling — a star schema with two fact tables and five conformed dimensions
+Direct Lake semantic model on a Fabric Lakehouse (OneLake)
+Data ingestion with Dataflow Gen2 and a Data Pipeline
+DAX — time intelligence, semi-additive measures, dynamic segmentation, SWITCH, CALCULATE
+Report design — KPIs, drill-through, field parameters, Row-Level Security (RLS)
+ALM — version control in PBIP / TMDL
+Dashboards
+
+Sales
+Executive commercial view: revenue, volume, growth, margin, and customer/region/category mix.
+
+KPIs: 
+Total Revenue · Total Volume · Revenue YoY % · Avg Order Value · Gross Margin %
+
+Inventory
+Inventory-health view: days of stock, turnover, ageing bands, and stock value by warehouse and category.
+
+KPIs:
+Closing Stock Value · Days of Inventory (Days on Hand) · Inventory Turnover · E&O % · Stock-out SKUs
+
+Data model
+Star schema — facts in the centre, conformed dimensions around them.
+
+Table	Type	Grain (one row = )
+fact_orders	Transactional	one order line (one product per order)
+fact_inventory	Snapshot	one product × warehouse × month
+dim_date	Dimension	one calendar day (marked date table)
+dim_product	Dimension	one product
+dim_customer	Dimension	one customer
+dim_warehouse	Dimension	one warehouse
+dim_carrier	Dimension	one carrier
+
+dim_date, dim_product, and dim_warehouse filter both facts (conformed), which is what lets the two facts be analysed together — for example, Days of Inventory divides an inventory measure by an orders measure for the same product and period.
 
 ---
-
 ## Architecture
 
 ```
@@ -79,5 +112,13 @@ In an enterprise Fabric tenant, the next step is native **Git integration** on t
 Microsoft Fabric · OneLake · Lakehouse · Direct Lake · Dataflow Gen2 · Power BI · DAX · Power Query (M)
 
 ---
+
+fabric-supply-chain-analytics/
+├── README.md                     # this file
+├── ENGINEERING_NOTES.md          # modeling decisions + STAR stories
+├── sales_dashboard.png           # Sales dashboard screenshot
+├── Inventory_dashboard.png       # Inventory dashboard screenshot
+├── data_model_star_schema.png    # data model diagram
+└── <project files>               # PBIP / TMDL semantic model + report
 
 *Personal learning project. Synthetic data only.*
