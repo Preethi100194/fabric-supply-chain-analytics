@@ -12,7 +12,7 @@ This document records **how** the model was built and **why** — the grain deci
 
 | | |
 |---|---|
-| **Platform** | Microsoft Fabric — Lakehouse (OneLake), Direct Lake semantic model, Dataflow Gen2, Data Pipeline |
+| **Platform** | Microsoft Fabric — Lakehouse (OneLake), Direct Lake semantic model, Dataflow Gen2 |
 | **Data** | Synthetic supply-chain data — no real employer data |
 | **Model** | Star schema — 2 fact tables, 5 conformed dimensions |
 | **Authoring** | Power BI Desktop live-connected to the Direct Lake semantic model; versioned in PBIP / TMDL |
