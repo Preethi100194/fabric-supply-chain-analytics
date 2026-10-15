@@ -2,7 +2,7 @@
 
 *Semantic modeling decisions and the debugging behind the Sales and Inventory dashboards.*
 
-*Personal portfolio project · synthetic data only (no employer data) · built to demonstrate DP‑600 / DP‑800 hands‑on.*
+*Personal portfolio project · synthetic data only (no employer data) · built to demonstrate DP‑600 / DP‑700 / DP‑800 hands‑on.*
 
 This document records **how** the model was built and **why** — the grain decisions, the DAX patterns, and two honest debugging stories where visuals looked correct but hid real modeling defects. It's meant to be read alongside the dashboards in this repo.
 
